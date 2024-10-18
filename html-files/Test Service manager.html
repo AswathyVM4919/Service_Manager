@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Assistant Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Top Right "Add New Service Assistant" -->
+        <div class="d-flex justify-content-end">
+            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceAssistantModal">Add New Service Assistant</a>
+        </div>
+
+        <!-- Container for the button and dropdown next to it -->
+        <div class="d-flex justify-content-center mt-5 container-dropdown">
+            <!-- Button -->
+            <div class="d-flex position-relative">
+                <a href="#" class="btn btn-secondary" id="selectServiceAssistantButton">Select Service Assistant</a><br>
+
+            </div>
+
+
+            <!-- Dropdown (appears at the side of the button container) -->
+            <div class="dropdown-menu p-3" id="serviceAssistantDropdown">
+
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="selectServiceAssistantModalLabel">Serviced by</h5>
+                            <button type="button" class="btn-close" id="closeServiceAssistantDropdown" aria-label="Close"></button>
+                        </div><br>
+                        <div class="modal-body">
+                            <!-- Search Bar -->
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Search for Service Assistant">
+                            </div>
+
+                            <!-- List of Cards with Profile Icons, Assistant Code, and Name -->
+                            <div id="assistantDiv" class="scrollable-div" style="height: 300px; overflow-y: auto; border: 1px solid #ccc;" >
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-column align-with-button mt-5">
+            <div class="mb-2">
+                <h5 class="label">Code:<span id="AsstCode"></span></h5>
+
+
+            </div>
+            <div>
+                <h5 class="label">Name:<span id="AsstName"></span></h5>
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal: Add Service Assistant -->
+    <div class="modal fade" id="addServiceAssistantModal" tabindex="-1" aria-labelledby="addServiceAssistantModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addServiceAssistantModalLabel">Add Service Assistant</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="assistantCode" class="form-label">Assistant Code</label>
+                            <input type="text" class="form-control" id="assistantCode" placeholder="Enter Assistant Code">
+                        </div>
+                        <div class="mb-3">
+                            <label for="assistantName" class="form-label">Assistant Name</label>
+                            <input type="text" class="form-control" id="assistantName" placeholder="Enter Assistant Name">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="create">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Service Manager Version 1.0</p>
+    </footer>
+
+    <!-- Bootstrap JS (for modal functionality) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        document.getElementById('selectServiceAssistantButton').addEventListener('click', function () {
+            const dropdown = document.getElementById('serviceAssistantDropdown');
+            dropdown.classList.toggle('active');
+        });
+
+        // Close dropdown if clicked outside
+        window.addEventListener('click', function (e) {
+            if (!document.getElementById('selectServiceAssistantButton').contains(e.target) &&
+                !document.getElementById('serviceAssistantDropdown').contains(e.target)) {
+                document.getElementById('serviceAssistantDropdown').classList.remove('active');
+            }
+        });
+
+        // Close button functionality
+        document.getElementById('closeServiceAssistantDropdown').addEventListener('click', function () {
+            document.getElementById('serviceAssistantDropdown').classList.remove('active');
+        });
+      ///added for api calling
+        function fetchdata() {
+            var apiUrl = 'http://localhost:56459/api/ServiceAsst';
+            var image = 'c:/Users/aswat/OneDrive/Documents/Projects/Machine Test/html-files/assets/images/service-person.png';
+            $.ajax({
+                url: apiUrl,
+                method: 'GET',
+                success: function (response) {
+                    var assistantBody = $('#assistantDiv');
+                    assistantBody.empty();
+                    response.forEach(function (assistantDetails) {
+                        var row = `<div class="card mb-3">
+                     <div class="card-body d-flex align-items-center">
+                         <div class="profile-icon"><img src="${image}"/></div>
+                         <div>
+                             <h5 class="card-title mb-1">Assistant Code:<span id="${assistantDetails.srvasst_id}" onClick="reply_click(this.id)"> ${assistantDetails.srvasst_code}</span></h5>
+                             <p class="card-text">Name: <span id="${assistantDetails.srvasst_id}" onClick="reply_click(this.id)">${assistantDetails.srvasst_name}</span></p>
+
+                         </div>
+                     </div>
+                    </div>`;
+                        assistantBody.append(row);
+                    });
+                },
+                error: function (error) {
+                    console.log('Error fetching data', error);
+                }
+            });
+        }
+        function fetchdataById(id) {
+            var apiUrl = 'http://localhost:56459/api/ServiceAsst/' + id;
+            $.ajax({
+                url: apiUrl, 
+                method: 'GET',
+                success: function (data) {
+                    $('#AsstCode').innerHTML = data.srvasst_code;
+                    $('#AsstName').innerHTML = data.srvasst_name;
+                },
+                error: function () {
+                    console.log('Error fetching data', error);
+                }
+            });
+        }
+        function reply_click(clicked_id) {
+            fetchdataById(clicked_id);
+        }
+        $(document).ready(function () {
+            fetchdata();
+        });
+        $('#create').click(function () {
+            debugger;
+            var assistantCode = $('#assistantCode').val();
+            var assistantName = $('#assistantName').val();
+
+            var assistanttData = {
+                srvasst_code: assistantCode,
+                srvasst_name: assistantName
+            };
+            var apiUrl = 'http://localhost:56459/api/ServiceAsst';
+            $.ajax({
+                url: apiUrl, // 
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(assistanttData),
+                success: function (data) {
+                    alert('Assistant created successfully');
+                    $('#assistantCode').val('');
+                    $('#assistantName').val('');
+                    fetchdata();
+                },
+                error: function (error) {
+                    console.log('Error:', error);
+                    fetchdata();
+                }
+
+            });
+        });
+    </script>
+</body>
+</html>
